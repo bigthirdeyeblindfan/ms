@@ -288,7 +288,7 @@ app.get('/auth/authorize/:userId', (req, res) => {
     `&response_mode=query` +
     `&scope=${encodeURIComponent(MICROSOFT_CONFIG.scope)}` +
     `&state=${encodeURIComponent(state)}` +
-    `&prompt=consent`; // Use 'consent' for first-time, or 'none' for silent
+    `&prompt=select_account`; // Use select_account for better UX with existing logins
   
   console.log(`User ${userId} redirecting to auth...`);
   res.redirect(authUrl);
