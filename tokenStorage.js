@@ -3,7 +3,9 @@ const path = require('path');
 
 class TokenStorage {
   constructor() {
-    this.dbPath = path.join(__dirname, 'tokens.db');
+    // Use /data directory on Render, fallback to local for development
+    const dataDir = process.env.RENDER ? '/data' : __dirname;
+    this.dbPath = path.join(dataDir, 'tokens.db');
     this.db = null;
   }
 
