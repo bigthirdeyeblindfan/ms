@@ -477,6 +477,58 @@ app.get('/auth/token', (req, res) => {
   }
 });
 
+// Get FULL token with access_token (⚠️ SENSITIVE - protect in production)
+app.get('/auth/token/:userId/full', (req, res) => {
+  const { userId } = req.params;
+  
+  const token = tokenStorage.getToken(userId);
+  if (!token) {
+    return res.status(404).json({ error: `No token found for user: ${userId}` });
+  }
+  
+  // Return everything including sensitive tokens
+  res.json({
+    userId: token.userId,
+    userEmail: token.userEmail,
+    access_token: token.access_token,
+    refresh_token: token.refresh_token,
+    token_type: token.token_type,
+    expiresAt: new Date(token.expires_at),
+    expiresIn: Math.round((token.expires_at - Date.now()) / 1000),
+    scope: token.scope,
+    metadata: token.metadata,
+    createdAt: new Date(token.created_at),
+    updatedAt: new Date(token.updated_at)
+  });
+});
+
+// Get all tokens with full access tokens (⚠️ VERY SENSITIVE)
+app.get('/auth/tokens/full', (req, res) => {
+  const allTokens = tokenStorage.getAllTokens();
+  
+  if (allTokens.length === 0) {
+    return res.status(404).json({ error: 'No tokens found' });
+  }
+  
+  res.json({
+    count: allTokens.length,
+    tokens: allTokens.map(t => ({
+      userId: t.userId,
+      userEmail: t.userEmail,
+      access_token: t.access_token,
+      refresh_token: t.refresh_token,
+      token_type: t.token_type,
+      expiresAt: new Date(t.expires_at),
+      expiresIn: Math.round((t.expires_at - Date.now()) / 1000),
+      isValid: t.expires_at > Date.now(),
+      scope: t.scope,
+      metadata: t.metadata,
+      createdAt: new Date(t.created_at),
+      updatedAt: new Date(t.updated_at)
+    }))
+  });
+});
+
 // Get all tokens endpoint
 app.get('/tokens', (req, res) => {
   const allTokens = tokenStorage.getAllTokens();
