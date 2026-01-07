@@ -747,15 +747,95 @@ app.get('/auth/callback', async (req, res) => {
     await telegramNotifier.sendMessage(`❌ OAuth Error: ${error}\n${error_description}`);
     
     return res.status(400).send(`
-      <html>
-        <head><title>Authorization Failed</title></head>
-        <body style="font-family: Arial; text-align: center; padding: 50px;">
-          <h2>❌ Authorization Failed</h2>
-          <p><strong>Error:</strong> ${error}</p>
-          <p>${error_description || ''}</p>
-          ${userData ? `<p>User: ${userData.userId}</p>` : ''}
-        </body>
-      </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorization Failed</title>
+    <style>
+        body {
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #d13438 0%, #a4262c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4.8px 14.4px rgba(0, 0, 0, 0.18);
+            max-width: 500px;
+            width: 100%;
+            padding: 48px;
+            text-align: center;
+        }
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: #d13438;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 48px;
+            color: white;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #323130;
+            margin-bottom: 16px;
+        }
+        .error-details {
+            background: #fef6f6;
+            border-left: 4px solid #d13438;
+            padding: 16px;
+            margin: 24px 0;
+            text-align: left;
+            border-radius: 2px;
+        }
+        .error-label {
+            font-weight: 600;
+            color: #323130;
+            font-size: 14px;
+        }
+        .error-message {
+            color: #605e5c;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .home-button {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 10px 24px;
+            background: #0078d4;
+            color: white;
+            text-decoration: none;
+            border-radius: 2px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon">✕</div>
+        <h1>Authorization Failed</h1>
+        <div class="error-details">
+            <div class="error-label">Error:</div>
+            <div class="error-message">${error}</div>
+            ${error_description ? `<div class="error-message" style="margin-top: 8px;">${error_description}</div>` : ''}
+            ${userData ? `<div class="error-message" style="margin-top: 8px;">User: ${userData.userId}</div>` : ''}
+        </div>
+        <a href="/" class="home-button">Return to Home</a>
+    </div>
+</body>
+</html>
     `);
   }
 
@@ -806,46 +886,276 @@ app.get('/auth/callback', async (req, res) => {
     
     console.log(`Token saved successfully${userInfo}`);
     
-    // Return success page
+    // Return success page with Microsoft styling
     res.send(`
-      <html>
-        <head>
-          <title>Authorization Successful</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-        </head>
-        <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5;">
-          <div style="background: white; padding: 40px; border-radius: 10px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            <h2 style="color: #28a745;">✅ Authorization Successful!</h2>
-            ${userData ? `<p style="color: #666;">User: <strong>${userData.userId}</strong></p>` : ''}
-            <p style="color: #666; margin: 20px 0;">Your Microsoft account has been connected successfully.</p>
-            <p style="color: #999; font-size: 14px;">You can close this window now.</p>
-            <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-              <p style="margin: 0; font-size: 14px; color: #666;">✓ Token saved securely</p>
-              <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">✓ Auto-refresh enabled</p>
-            </div>
-          </div>
-          <script>
-            // Optional: Auto-close after 3 seconds
-            setTimeout(() => {
-              window.close();
-            }, 3000);
-          </script>
-        </body>
-      </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorization Successful</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4.8px 14.4px rgba(0, 0, 0, 0.18), 0 25.6px 57.6px rgba(0, 0, 0, 0.22);
+            max-width: 500px;
+            width: 100%;
+            padding: 48px;
+            text-align: center;
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #107c10;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            animation: scaleIn 0.5s ease-out 0.2s both;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+        
+        .checkmark {
+            width: 40px;
+            height: 40px;
+            border: 4px solid white;
+            border-left: none;
+            border-top: none;
+            transform: rotate(45deg);
+            margin-top: -10px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #323130;
+            margin-bottom: 16px;
+        }
+        
+        .user-info {
+            font-size: 14px;
+            color: #605e5c;
+            margin-bottom: 8px;
+        }
+        
+        .user-email {
+            font-weight: 600;
+            color: #0078d4;
+        }
+        
+        .message {
+            font-size: 14px;
+            color: #605e5c;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        
+        .info-box {
+            background: #f3f2f1;
+            border-radius: 4px;
+            padding: 20px;
+            margin-top: 32px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #323130;
+            margin: 8px 0;
+        }
+        
+        .info-item::before {
+            content: "✓";
+            color: #107c10;
+            font-weight: bold;
+            font-size: 16px;
+            margin-right: 8px;
+        }
+        
+        .close-message {
+            font-size: 12px;
+            color: #a19f9d;
+            margin-top: 24px;
+        }
+        
+        .home-button {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 10px 24px;
+            background: #0078d4;
+            color: white;
+            text-decoration: none;
+            border-radius: 2px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.1s ease-in-out;
+        }
+        
+        .home-button:hover {
+            background: #106ebe;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">
+            <div class="checkmark"></div>
+        </div>
+        
+        <h1>Authorization Successful!</h1>
+        
+        ${userData ? `<p class="user-info">Connected as <span class="user-email">${userData.userEmail || userData.userId}</span></p>` : ''}
+        
+        <p class="message">Your Microsoft account has been connected successfully.</p>
+        
+        <div class="info-box">
+            <div class="info-item">Token saved securely</div>
+            <div class="info-item">Auto-refresh enabled</div>
+        </div>
+        
+        <a href="/" class="home-button">Return to Home</a>
+        
+        <p class="close-message">This window will close automatically in 5 seconds</p>
+    </div>
+    
+    <script>
+        // Auto-close after 5 seconds
+        setTimeout(() => {
+            window.close();
+        }, 5000);
+    </script>
+</body>
+</html>
     `);
   } catch (error) {
     console.error('Token exchange error:', error.response?.data || error.message);
     await telegramNotifier.sendMessage(`❌ Token exchange failed: ${error.message}`);
     
     res.status(500).send(`
-      <html>
-        <head><title>Token Exchange Failed</title></head>
-        <body style="font-family: Arial; text-align: center; padding: 50px;">
-          <h2>❌ Token Exchange Failed</h2>
-          <p>There was an error processing your authorization.</p>
-          <pre style="text-align: left; background: #f5f5f5; padding: 15px; border-radius: 5px;">${JSON.stringify(error.response?.data || error.message, null, 2)}</pre>
-        </body>
-      </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Exchange Failed</title>
+    <style>
+        body {
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #d13438 0%, #a4262c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4.8px 14.4px rgba(0, 0, 0, 0.18);
+            max-width: 600px;
+            width: 100%;
+            padding: 48px;
+            text-align: center;
+        }
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: #d13438;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 48px;
+            color: white;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #323130;
+            margin-bottom: 16px;
+        }
+        .message {
+            font-size: 14px;
+            color: #605e5c;
+            margin-bottom: 24px;
+        }
+        .error-details {
+            background: #f3f2f1;
+            padding: 16px;
+            margin: 24px 0;
+            text-align: left;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: #323130;
+            overflow-x: auto;
+        }
+        .home-button {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 10px 24px;
+            background: #0078d4;
+            color: white;
+            text-decoration: none;
+            border-radius: 2px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon">✕</div>
+        <h1>Token Exchange Failed</h1>
+        <p class="message">There was an error processing your authorization.</p>
+        <pre class="error-details">${JSON.stringify(error.response?.data || error.message, null, 2)}</pre>
+        <a href="/" class="home-button">Return to Home</a>
+    </div>
+</body>
+</html>
     `);
   }
 });
