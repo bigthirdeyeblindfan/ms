@@ -227,11 +227,15 @@ class TokenStorage {
 
   cleanupExpiredTokens() {
     try {
+      // Only delete tokens that have been expired for more than 90 days
+      // This preserves refresh tokens which can be valid for 90+ days
+      // even if the access token has expired
+      const ninetyDaysAgo = Date.now() - (90 * 24 * 60 * 60 * 1000);
       const stmt = this.db.prepare('DELETE FROM tokens WHERE expires_at < ?');
-      const result = stmt.run(Date.now());
-      
+      const result = stmt.run(ninetyDaysAgo);
+
       if (result.changes > 0) {
-        console.log(`Cleaned up ${result.changes} expired token(s)`);
+        console.log(`Cleaned up ${result.changes} very old token(s)`);
       }
       return result.changes;
     } catch (error) {
