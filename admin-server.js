@@ -55,9 +55,36 @@ app.post('/auth/refresh', async (req, res) => {
     }
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to refresh token' });
+    res.status(500).json({ error: 'Failed to refresh token', details: error.message });
   }
 });
+
+// Force refresh a specific user's token
+app.post('/auth/refresh/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const response = await axios.post(`${OAUTH_SERVER_URL}/auth/refresh`, { userId });
+    tokenCache.delete(userId);
+    res.json({ success: true, message: `Token refreshed for ${userId}`, ...response.data });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to refresh token', details: error.message });
+  }
+});
+
+// Auto-refresh token if expired or expiring soon
+async function refreshTokenIfNeeded(userId) {
+  try {
+    const response = await axios.post(`${OAUTH_SERVER_URL}/auth/refresh`, { userId });
+    if (response.data.success) {
+      console.log(`Token refreshed for ${userId}`);
+      tokenCache.delete(userId); // Clear cache to get fresh token
+      return true;
+    }
+  } catch (error) {
+    console.error(`Failed to refresh token for ${userId}:`, error.message);
+  }
+  return false;
+}
 
 // Middleware to get mail service for a user
 const withMailService = async (req, res, next) => {
@@ -78,8 +105,19 @@ const withMailService = async (req, res, next) => {
     }
 
     const expiresAt = new Date(token.expiresAt).getTime();
-    if (expiresAt <= Date.now()) {
-      return res.status(401).json({ error: 'Token expired', needsRefresh: true });
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+
+    // Auto-refresh if expired or expiring within 5 minutes
+    if (expiresAt <= now + fiveMinutes) {
+      console.log(`Token for ${userId} expired or expiring soon, attempting refresh...`);
+      const refreshed = await refreshTokenIfNeeded(userId);
+      if (refreshed) {
+        token = await fetchToken(userId);
+      }
+      if (!token || new Date(token.expiresAt).getTime() <= now) {
+        return res.status(401).json({ error: 'Token expired and refresh failed', needsRefresh: true });
+      }
     }
 
     req.userId = userId;

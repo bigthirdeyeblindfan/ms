@@ -148,7 +148,8 @@
     </div>
     <div class="account-selector">
       <select id="accountSelect"><option value="">Select an account...</option></select>
-      <button class="refresh-btn" onclick="refreshAccounts()">Refresh</button>
+      <button class="refresh-btn" onclick="refreshToken()" title="Refresh OAuth token">Refresh Token</button>
+      <button class="refresh-btn" onclick="refreshAccounts()" title="Reload account list">Reload</button>
     </div>
   </header>
 
@@ -255,6 +256,19 @@
       } catch (error) { showToast('Failed to load accounts', 'error'); }
     }
     function refreshAccounts() { loadAccounts(); showToast('Accounts refreshed'); }
+    async function refreshToken() {
+      if (!currentUserId) return showToast('Select an account first', 'error');
+      try {
+        const res = await fetch(`/auth/refresh/${currentUserId}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Token refreshed!', 'success');
+          loadAccounts();
+        } else {
+          showToast(data.error || 'Refresh failed', 'error');
+        }
+      } catch (e) { showToast('Failed to refresh token', 'error'); }
+    }
     async function selectAccount(userId) {
       currentUserId = userId;
       currentFolder = 'inbox'; currentMessages = []; currentMessage = null; selectedMessages.clear(); skip = 0;
