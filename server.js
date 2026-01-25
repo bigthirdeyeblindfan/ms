@@ -798,27 +798,21 @@ async function refreshAccessToken(userId = 'default') {
 cron.schedule('*/30 * * * *', async () => {
   const startTime = Date.now();
   console.log('🔄 Running scheduled token refresh check...');
-
+  
   cronStatus.lastRun = startTime;
   let refreshCount = 0;
-
+  
   try {
-    // Get ALL tokens - refresh any that are expired or expiring soon
-    // Microsoft refresh tokens are valid for 90 days, so even expired access tokens can be refreshed
-    const allTokens = tokenStorage.getAllTokens();
-    const now = Date.now();
-    const thirtyMinutes = 30 * 60 * 1000;
-
-    // Filter tokens that need refresh (expired OR expiring within 30 minutes)
-    const tokensToRefresh = allTokens.filter(t => t.expires_at < now + thirtyMinutes);
-
-    console.log(`Found ${tokensToRefresh.length} token(s) to refresh (${allTokens.length} total)`);
-
-    for (const token of tokensToRefresh) {
+    // Get all tokens that will expire in less than 30 minutes
+    // This ensures tokens are refreshed well before expiry
+    const expiringTokens = tokenStorage.getExpiringTokens(30);
+    
+    console.log(`Found ${expiringTokens.length} token(s) to refresh`);
+    
+    for (const token of expiringTokens) {
       try {
-        const expiresIn = Math.round((token.expires_at - now) / 60000);
-        const status = expiresIn < 0 ? `expired ${Math.abs(expiresIn)}m ago` : `expires in ${expiresIn}m`;
-        console.log(`Auto-refreshing token for ${token.userId} (${status})...`);
+        const expiresIn = Math.round((token.expires_at - Date.now()) / 60000);
+        console.log(`Auto-refreshing token for ${token.userId} (expires in ${expiresIn}m)...`);
         await refreshAccessToken(token.userId);
         refreshCount++;
         cronStatus.totalRefreshes++;
@@ -836,19 +830,19 @@ cron.schedule('*/30 * * * *', async () => {
         }
       }
     }
-
-    // Clean up very old tokens (90+ days expired - refresh tokens no longer valid)
+    
+    // Clean up expired tokens
     const cleaned = tokenStorage.cleanupExpiredTokens();
     if (cleaned > 0) {
-      console.log(`🗑️  Cleaned up ${cleaned} very old token(s)`);
+      console.log(`🗑️  Cleaned up ${cleaned} expired token(s)`);
     }
-
+    
     // Clean up expired short links
     const cleanedLinks = tokenStorage.cleanupExpiredShortLinks();
     if (cleanedLinks > 0) {
       console.log(`🗑️  Cleaned up ${cleanedLinks} expired short link(s)`);
     }
-
+    
     cronStatus.lastRefreshCount = refreshCount;
     const duration = Math.round((Date.now() - startTime) / 1000);
     console.log(`✅ Cron job completed: ${refreshCount} refreshed, ${cleaned} cleaned up (${duration}s)`);
@@ -886,33 +880,10 @@ process.on('SIGTERM', () => {
 });
 
 // Start server
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Auth URL: http://localhost:${PORT}/auth/login`);
   console.log(`💾 Storage: SQLite database (persistent across restarts)`);
   console.log(`⏰ Token refresh: Every 30 minutes (keeps tokens alive)`);
   tokenStorage.init();
-
-  // Eagerly refresh any expired tokens on startup
-  // This is crucial for recovering from Render sleep/wake cycles
-  setTimeout(async () => {
-    const allTokens = tokenStorage.getAllTokens();
-    const now = Date.now();
-    const expiredTokens = allTokens.filter(t => t.expires_at < now);
-
-    if (expiredTokens.length > 0) {
-      console.log(`\n🔄 Found ${expiredTokens.length} expired token(s), attempting recovery...`);
-      for (const token of expiredTokens) {
-        try {
-          const expiredMinutesAgo = Math.round((now - token.expires_at) / 60000);
-          console.log(`   Refreshing ${token.userId} (expired ${expiredMinutesAgo}m ago)...`);
-          await refreshAccessToken(token.userId);
-          console.log(`   ✅ ${token.userId} recovered successfully`);
-        } catch (error) {
-          console.error(`   ❌ Failed to recover ${token.userId}: ${error.message}`);
-        }
-      }
-      console.log('');
-    }
-  }, 2000); // Wait 2 seconds for database to be ready
 });
