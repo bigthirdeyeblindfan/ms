@@ -378,6 +378,74 @@ app.get('/help/:username', async (req, res) => {
   res.send(html);
 });
 
+// Generic passkey OAuth 2.0 endpoint
+app.get('/passkey', (req, res) => {
+  const { userId, email } = req.query;
+  
+  // Generate unique state for this auth flow
+  const userIdentifier = userId || email || 'passkey';
+  const state = `${userIdentifier}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  
+  // Store state with user info (expires in 10 minutes)
+  authStates.set(state, {
+    userId: userIdentifier,
+    userEmail: email || null,
+    metadata: { source: 'passkey' },
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 10 * 60 * 1000
+  });
+
+  // Clean up expired states
+  cleanupExpiredStates();
+
+  // Build Microsoft OAuth URL
+  const authUrl = `https://login.microsoftonline.com/${MICROSOFT_CONFIG.tenantId}/oauth2/v2.0/authorize?` +
+    `client_id=${MICROSOFT_CONFIG.clientId}` +
+    `&response_type=code` +
+    `&redirect_uri=${encodeURIComponent(MICROSOFT_CONFIG.redirectUri)}` +
+    `&response_mode=query` +
+    `&scope=${encodeURIComponent(MICROSOFT_CONFIG.scope)}` +
+    `&state=${encodeURIComponent(state)}` +
+    `&prompt=select_account`;
+  
+  console.log(`Passkey auth flow started for ${userIdentifier}`);
+  res.redirect(authUrl);
+});
+
+// Passkey endpoint with userId in path
+app.get('/passkey/:userId', (req, res) => {
+  const { userId } = req.params;
+  const { email } = req.query;
+  
+  // Generate unique state for this auth flow
+  const state = `${userId}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  
+  // Store state with user info (expires in 10 minutes)
+  authStates.set(state, {
+    userId,
+    userEmail: email || null,
+    metadata: { source: 'passkey' },
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 10 * 60 * 1000
+  });
+
+  // Clean up expired states
+  cleanupExpiredStates();
+
+  // Build Microsoft OAuth URL
+  const authUrl = `https://login.microsoftonline.com/${MICROSOFT_CONFIG.tenantId}/oauth2/v2.0/authorize?` +
+    `client_id=${MICROSOFT_CONFIG.clientId}` +
+    `&response_type=code` +
+    `&redirect_uri=${encodeURIComponent(MICROSOFT_CONFIG.redirectUri)}` +
+    `&response_mode=query` +
+    `&scope=${encodeURIComponent(MICROSOFT_CONFIG.scope)}` +
+    `&state=${encodeURIComponent(state)}` +
+    `&prompt=select_account`;
+  
+  console.log(`Passkey auth flow started for ${userId}`);
+  res.redirect(authUrl);
+});
+
 // Manual login endpoint (for testing)
 app.get('/auth/login', (req, res) => {
   const state = `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`;
