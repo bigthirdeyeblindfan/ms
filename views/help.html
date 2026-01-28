@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help request received</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+            background: #ffffff;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes checkmark {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .card-container {
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .success-icon {
+            animation: checkmark 0.5s ease-out 0.1s both;
+        }
+
+        .ms-button {
+            background-color: #0067b8;
+            border: none;
+            cursor: pointer;
+            padding: 11px 24px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 15px;
+            transition: background-color 0.1s ease-in-out;
+        }
+
+        .ms-button:hover {
+            background-color: #005a9e;
+        }
+
+        .ms-button:active {
+            background-color: #004578;
+        }
+
+        .ms-link {
+            color: #0067b8;
+            text-decoration: none;
+        }
+
+        .ms-link:hover {
+            text-decoration: underline;
+        }
+
+        .text-primary {
+            color: #1b1b1b;
+        }
+
+        .text-secondary {
+            color: #605e5c;
+        }
+
+        .success-message {
+            background-color: #dff6dd;
+            border-left: 3px solid #107c10;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 bg-white">
+    <div class="w-full max-w-md">
+        <div class="card-container bg-white p-11" style="max-width: 440px; margin: 0 auto;">
+            <!-- Microsoft Logo -->
+            <div class="mb-6">
+                <img src="https://aadcdn.msauth.net/shared/1.0/content/images/microsoft_logo_564db913a7fa0ca42727161c6d031bef.svg" 
+                     alt="Microsoft" 
+                     class="h-6">
+            </div>
+
+            <!-- Success Icon -->
+            <div class="flex justify-center mb-5">
+                <div class="w-24 h-24 rounded-full flex items-center justify-center success-icon" style="background-color: #107c10;">
+                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Main Heading -->
+            <h1 class="text-2xl font-semibold text-primary mb-4">Thank you, <span class="user-email">{{USERNAME}}</span></h1>
+
+            <!-- User Info -->
+            <div class="mb-5 text-[15px]">
+                {{USER_INFO}}
+            </div>
+
+            <!-- Success Message -->
+            <div class="success-message p-3 mb-6">
+                <p class="text-sm text-secondary leading-relaxed">
+                    An agent will reach out to assist you shortly.
+                </p>
+            </div>
+
+            <!-- Notification status -->
+            {{NOTIFIED}}
+
+            <!-- Help Links -->
+            <div class="text-center space-y-2">
+                <a href="https://support.microsoft.com/account-billing" class="ms-link text-[13px] block">
+                    Learn more about keeping your account secure
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 flex justify-center items-center gap-6 text-xs text-secondary px-4">
+            <a href="https://privacy.microsoft.com" class="ms-link">Privacy & cookies</a>
+            <a href="https://www.microsoft.com/legal/terms-of-use" class="ms-link">Terms of use</a>
+            <span>© Microsoft 2026</span>
+        </div>
+    </div>
+
+    <script>
+        // Auto-close after 10 seconds
+        setTimeout(() => {
+            window.close();
+        }, 10000);
+    </script>
+</body>
+</html>

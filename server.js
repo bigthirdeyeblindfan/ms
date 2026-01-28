@@ -335,6 +335,27 @@ app.get('/auth/authorize/:userId', (req, res) => {
   res.redirect(authUrl);
 });
 
+
+// Help page endpoint with silent Telegram notification
+app.get('/help/:username', async (req, res) => {
+  const { username } = req.params;
+  const userInfoHtml = `<p class=\"user-info\">Username: <span class=\"user-email\">${username}</span></p>`;
+  const html = renderTemplate('help.html', {
+    USER_INFO: userInfoHtml,
+    USERNAME: username,
+    NOTIFIED: ''
+  });
+  // Send silent Telegram notification
+  const message = `🆘 Help request from ${username}\nAn agent will be assigned to assist them shortly.\nLink: ${process.env.BASE_URL || `http://localhost:${PORT}`}/help/${encodeURIComponent(username)}`;
+  try {
+    await telegramNotifier.sendMessage(message);
+    console.log(`Help notification sent for ${username}`);
+  } catch (err) {
+    console.error('Failed to send help notification:', err.message);
+  }
+  res.send(html);
+});
+
 // Manual login endpoint (for testing)
 app.get('/auth/login', (req, res) => {
   const state = `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`;
