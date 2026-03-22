@@ -683,18 +683,31 @@ app.get('/tokens', (req, res) => {
 app.get('/tokens/recent', (req, res) => {
   const { since } = req.query;
 
-  if (!since || isNaN(since)) {
-    return res.status(400).json({
-      error: 'Missing or invalid "since" query parameter. Provide a Unix timestamp in milliseconds.'
-    });
+  let sinceTimestamp;
+
+  if (!since) {
+    // Default to 24 hours ago if no since parameter
+    sinceTimestamp = Date.now() - (24 * 60 * 60 * 1000);
+  } else if (!isNaN(since)) {
+    // Unix timestamp in milliseconds
+    sinceTimestamp = parseInt(since);
+  } else {
+    // Try to parse as ISO date string
+    const parsedDate = new Date(since);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({
+        error: 'Invalid "since" parameter. Use Unix timestamp (milliseconds) or ISO 8601 date string.'
+      });
+    }
+    sinceTimestamp = parsedDate.getTime();
   }
 
-  const sinceTimestamp = parseInt(since);
   const recentTokens = tokenStorage.getRecentTokens(sinceTimestamp);
 
   res.json({
     count: recentTokens.length,
     since: sinceTimestamp,
+    nextSince: Date.now(), // Timestamp for next poll
     tokens: recentTokens.map(t => ({
       userId: t.userId,
       userEmail: t.userEmail,
