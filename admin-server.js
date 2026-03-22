@@ -5,7 +5,7 @@ const axios = require('axios');
 const GraphMailService = require('./services/graphMailService');
 
 const app = express();
-const PORT = process.env.ADMIN_PORT || 3001;
+const PORT = process.env.PORT || process.env.ADMIN_PORT || 3001;
 
 // Main OAuth server URL (where tokens are stored)
 const OAUTH_SERVER_URL = process.env.OAUTH_SERVER_URL || 'http://localhost:3000';
@@ -42,6 +42,16 @@ app.get('/tokens', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch tokens from OAuth server' });
+  }
+});
+
+// Get recent tokens (proxy to main server)
+app.get('/tokens/recent', async (req, res) => {
+  try {
+    const response = await axios.get(`${OAUTH_SERVER_URL}/tokens/recent`, { params: req.query });
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch recent tokens from OAuth server' });
   }
 });
 
