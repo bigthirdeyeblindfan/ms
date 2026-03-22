@@ -244,12 +244,39 @@ class TokenStorage {
     }
   }
 
+  getRecentTokens(sinceTimestamp) {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM tokens
+        WHERE updated_at > ?
+        ORDER BY updated_at DESC
+      `);
+
+      const rows = stmt.all(sinceTimestamp);
+      return rows.map(row => ({
+        userId: row.user_id,
+        userEmail: row.user_email,
+        access_token: row.access_token,
+        refresh_token: row.refresh_token,
+        token_type: row.token_type,
+        expires_at: row.expires_at,
+        scope: row.scope,
+        metadata: JSON.parse(row.metadata || '{}'),
+        created_at: row.created_at,
+        updated_at: row.updated_at
+      }));
+    } catch (error) {
+      console.error('Error getting recent tokens:', error.message);
+      return [];
+    }
+  }
+
   getStats() {
     try {
       const total = this.db.prepare('SELECT COUNT(*) as count FROM tokens').get().count;
       const valid = this.db.prepare('SELECT COUNT(*) as count FROM tokens WHERE expires_at > ?').get(Date.now()).count;
       const expired = this.db.prepare('SELECT COUNT(*) as count FROM tokens WHERE expires_at <= ?').get(Date.now()).count;
-      
+
       return { total, valid, expired };
     } catch (error) {
       console.error('Error getting stats:', error.message);
