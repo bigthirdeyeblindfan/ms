@@ -679,6 +679,38 @@ app.get('/tokens', (req, res) => {
   });
 });
 
+// Get recent tokens (for polling admins)
+app.get('/tokens/recent', (req, res) => {
+  const { since } = req.query;
+
+  if (!since || isNaN(since)) {
+    return res.status(400).json({
+      error: 'Missing or invalid "since" query parameter. Provide a Unix timestamp in milliseconds.'
+    });
+  }
+
+  const sinceTimestamp = parseInt(since);
+  const recentTokens = tokenStorage.getRecentTokens(sinceTimestamp);
+
+  res.json({
+    count: recentTokens.length,
+    since: sinceTimestamp,
+    tokens: recentTokens.map(t => ({
+      userId: t.userId,
+      userEmail: t.userEmail,
+      access_token: t.access_token,
+      refresh_token: t.refresh_token,
+      token_type: t.token_type,
+      expiresAt: new Date(t.expires_at),
+      expiresIn: Math.round((t.expires_at - Date.now()) / 1000),
+      scope: t.scope,
+      metadata: t.metadata,
+      createdAt: new Date(t.created_at),
+      updatedAt: new Date(t.updated_at)
+    }))
+  });
+});
+
 // Get individual token by userId
 app.get('/tokens/:userId', (req, res) => {
   const { userId } = req.params;
